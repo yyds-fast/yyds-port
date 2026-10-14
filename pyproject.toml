@@ -1,0 +1,62 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "yyds-port"
+dynamic = ["version"]
+description = "Zero-dependency port diagnostics, safe allocation, graceful freeing, and readiness waiter for modern Python."
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+authors = [
+    { name = "yyds-fast", email = "yyds.fast@gmail.com" },
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: OS Independent",
+    "Topic :: System :: Networking",
+    "Topic :: Utilities",
+]
+dependencies = []
+
+[project.urls]
+Documentation = "https://github.com/yyds-fast/yyds-port"
+Source = "https://github.com/yyds-fast/yyds-port"
+Issues = "https://github.com/yyds-fast/yyds-port/issues"
+
+[project.scripts]
+yyds-port = "yyds_port.cli.main:main"
+yyds_port = "yyds_port.cli.main:main"
+
+[project.optional-dependencies]
+dev = [
+    "build",
+    "pytest",
+    "pytest-asyncio",
+    "ruff",
+    "twine",
+]
+
+[tool.setuptools.dynamic]
+version = { attr = "yyds_port.__version__.__version__" }
+
+[tool.setuptools.packages.find]
+include = ["yyds_port*"]
+exclude = ["tests", "tests.*"]
+
+[tool.setuptools.package-data]
+"yyds_port" = ["py.typed"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py38"
+
+[tool.pytest.ini_options]
+asyncio_default_fixture_loop_scope = "function"
