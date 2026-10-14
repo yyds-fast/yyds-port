@@ -159,12 +159,17 @@ yyds-port wait 127.0.0.1:11434 --timeout 30 --notify
 [🔔] Desktop notification dispatched.
 ```
 
-### 4. `yyds-port find [--start 8000] [--count 1]`（查找空闲端口）
-非常适合在 CI/CD 或 Shell 启动脚本中嵌套赋值：
+### 4. `yyds-port find [port] [end] [-c/--count 1]`（查找空闲端口）
+支持直接传入起始端口（位置参数），非常适合在 CI/CD 或 Shell 启动脚本中极简嵌套赋值：
 ```bash
-APP_PORT=$(yyds-port find --start 8000)
+# 自动寻找从 8000 开始的首个可用端口
+APP_PORT=$(yyds-port find 8000)
 echo "Allocated port: $APP_PORT"
+
+# 在 8000~8050 区间内寻找连续 3 个可用端口
+yyds-port find 8000 8050 --count 3
 ```
+
 
 ### 5. `yyds-port ls`（全景端口看板）
 一览当前机器所有正在监听的 TCP/UDP 端口及对应进程，替代难读的 `netstat -tulnp`：

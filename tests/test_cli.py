@@ -21,6 +21,25 @@ def test_cli_find(capsys):
     assert 38000 <= port_val <= 39000
 
 
+def test_cli_find_positional_arg(capsys):
+    # 测试 yyds-port find 38000 位置参数语法
+    ret = main(["find", "38000"])
+    assert ret == 0
+    captured = capsys.readouterr()
+    port_val = int(captured.out.strip())
+    assert port_val >= 38000
+
+
+def test_cli_find_range_positional_arg(capsys):
+    # 测试 yyds-port find 38000 38050 位置参数区间语法
+    ret = main(["find", "38000", "38050"])
+    assert ret == 0
+    captured = capsys.readouterr()
+    port_val = int(captured.out.strip())
+    assert 38000 <= port_val <= 38050
+
+
+
 def test_cli_find_json(capsys):
     ret = main(["find", "--start", "38000", "--end", "39000", "--json"])
     assert ret == 0

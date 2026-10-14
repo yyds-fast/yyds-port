@@ -41,8 +41,24 @@ def build_parser() -> argparse.ArgumentParser:
     p_wait.add_argument("-t", "--timeout", type=float, default=20.0, help="最长超时等待秒数 (默认: 20)")
     p_wait.add_argument("--notify", action="store_true", help="就绪时发送系统桌面通知 (联动 yyds-notify-os)")
 
-    # find
+    # find [port] [end] [--start 1024] [--end 65535]
     p_find = subparsers.add_parser("find", help="寻找空闲可用端口")
+    p_find.add_argument(
+        "start_pos",
+        nargs="?",
+        type=int,
+        default=None,
+        metavar="PORT",
+        help="起始端口号 (可选位置参数，例如: yyds-port find 8000)",
+    )
+    p_find.add_argument(
+        "end_pos",
+        nargs="?",
+        type=int,
+        default=None,
+        metavar="END",
+        help="结束端口号 (可选位置参数，例如: yyds-port find 8000 9000)",
+    )
     p_find.add_argument("--start", type=int, default=1024, help="起始端口 (默认: 1024)")
     p_find.add_argument("--end", type=int, default=65535, help="结束端口 (默认: 65535)")
     p_find.add_argument("-c", "--count", type=int, default=1, help="连续可用端口数量 (默认: 1)")
@@ -77,9 +93,12 @@ def main(argv: Optional[List[str]] = None) -> int:
     elif args.command == "wait":
         return cmd_wait(args.target, timeout=args.timeout, notify=args.notify)
     elif args.command == "find":
-        return cmd_find(start=args.start, end=args.end, count=args.count, as_json=args.json)
+        start_val = args.start_pos if args.start_pos is not None else args.start
+        end_val = args.end_pos if args.end_pos is not None else args.end
+        return cmd_find(start=start_val, end=end_val, count=args.count, as_json=args.json)
     elif args.command == "ls":
         return cmd_ls(proto_str=args.proto, as_json=args.json)
+
 
     return 0
 

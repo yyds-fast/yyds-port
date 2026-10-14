@@ -44,26 +44,38 @@ def style(text: str, color: str = "", bold: bool = False, dim: bool = False) -> 
 
 
 def render_card(title: str, fields: List[Tuple[str, str]], width: int = 65) -> str:
-    """渲染纯 ANSI 优美终端信息卡片。"""
+    """渲染纯 ANSI 优美终端信息卡片（完美边框对齐）。"""
     lines = []
     # 顶部横线
     title_part = f" {title} "
     top_bar = "╭──" + title_part + "─" * max(0, width - 4 - len(title_part)) + "╮"
     lines.append(style(top_bar, Colors.CYAN, bold=True))
 
+    # 内部可用宽度: 左右边框 "│  " (3) + "  │" (3) 占用 6 个字符
+    inner_width = width - 6
+    label_width = 14
+    val_width = max(10, inner_width - label_width)
+
     for label, val in fields:
-        # 扣除 ANSI 控制符后的纯文本长度计算
-        raw_prefix = f"│  {label + ':':<15} "
-        remaining_len = max(0, width - len(raw_prefix) - 1)
+        raw_label = f"{label}:"
+        padded_label = raw_label.ljust(label_width)
         val_str = str(val)
-        if len(val_str) > remaining_len:
-            val_str = val_str[: remaining_len - 3] + "..."
-        line = f"│  {style(label + ':', Colors.YELLOW):<24} {style(val_str, Colors.WHITE):<{remaining_len}}│"
+        if len(val_str) > val_width:
+            val_str = val_str[: val_width - 3] + "..."
+        padded_val = val_str.ljust(val_width)
+
+        styled_label = style(padded_label, Colors.YELLOW)
+        styled_val = style(padded_val, Colors.WHITE)
+        left_border = style("│", Colors.CYAN, bold=True)
+        right_border = style("│", Colors.CYAN, bold=True)
+
+        line = f"{left_border}  {styled_label}{styled_val}  {right_border}"
         lines.append(line)
 
     bottom_bar = "╰" + "─" * (width - 2) + "╯"
     lines.append(style(bottom_bar, Colors.CYAN, bold=True))
     return "\n".join(lines)
+
 
 
 def render_table(headers: List[str], rows: List[List[Any]]) -> str:
