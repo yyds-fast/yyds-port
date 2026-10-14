@@ -24,7 +24,9 @@ classifiers = [
     "Topic :: System :: Networking",
     "Topic :: Utilities",
 ]
-dependencies = []
+dependencies = [
+    "rich>=12.0.0",
+]
 
 [project.urls]
 Documentation = "https://github.com/yyds-fast/yyds-port"

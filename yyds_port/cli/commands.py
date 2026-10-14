@@ -1,19 +1,20 @@
-"""yyds-port CLI 子命令执行分发逻辑。"""
+"""yyds-port CLI 子命令执行分发逻辑（全面接入 Rich 高质感终端呈现）。"""
 
 from __future__ import annotations
 
 import json
-import sys
 import time
 from typing import Any
 
 from yyds_port.cli.terminal import (
-    Colors,
-    render_card,
-    render_table,
+    print_card,
+    print_error,
+    print_info,
+    print_success,
+    print_table,
     send_system_notification,
-    style,
 )
+
 from yyds_port.core.models import Protocol
 from yyds_port.core.port import Port
 
@@ -35,7 +36,7 @@ def cmd_who(port_num: int, proto_str: str = "tcp", as_json: bool = False) -> int
         return 0 if occ else 1
 
     if occ is None:
-        print(style(f"Port {port_num} ({proto.value.upper()}) is FREE (no occupant).", Colors.GREEN))
+        print_success(f"Port {port_num} ({proto.value.upper()}) is FREE (no occupant).")
         return 1
 
     if occ.permission_denied:
@@ -58,7 +59,7 @@ def cmd_who(port_num: int, proto_str: str = "tcp", as_json: bool = False) -> int
         ]
 
     title = f"Port {port_num} Occupant"
-    print(render_card(title, fields))
+    print_card(title, fields)
     return 0
 
 
@@ -73,34 +74,34 @@ def cmd_free(
     occ = p.occupant()
 
     if occ is None or (occ.pid is None and not occ.permission_denied):
-        print(style(f"[✓] Port {port_num} is already free!", Colors.GREEN))
+        print_success(f"Port {port_num} is already free!")
         return 0
 
     if occ.permission_denied:
-        print(style(f"[✗] Port {port_num} is occupied by another user/system. Please run with sudo.", Colors.RED))
+        print_error(f"Port {port_num} is occupied by another user/system. Please run with sudo.")
         return 2
 
     # 交互确认
     if not yes:
         proc_desc = f"{occ.name} (PID {occ.pid})"
-        prompt = style(f"[?] Process {proc_desc} is listening on port {port_num}. Kill it? [y/N]: ", Colors.YELLOW, bold=True)
+        prompt = f"[?] Process {proc_desc} is listening on port {port_num}. Kill it? [y/N]: "
         try:
             choice = input(prompt).strip().lower()
             if choice not in ("y", "yes"):
-                print(style("[-] Operation cancelled by user.", Colors.DIM))
+                print_info("Operation cancelled by user.")
                 return 0
         except (KeyboardInterrupt, EOFError):
             print("\n[-] Operation cancelled.")
             return 1
 
-    print(f"[*] Terminating PID {occ.pid} ({occ.name})...")
+    print_info(f"Terminating PID {occ.pid} ({occ.name})...")
     success = p.free(timeout=2.5, force=force, kill_tree=True, allow_protected=allow_protected)
 
     if success:
-        print(style(f"[✓] Successfully freed port {port_num}!", Colors.GREEN, bold=True))
+        print_success(f"Successfully freed port {port_num}!")
         return 0
     else:
-        print(style(f"[✗] Failed to free port {port_num}. Process may still be holding the port.", Colors.RED))
+        print_error(f"Failed to free port {port_num}. Process may still be holding the port.")
         return 1
 
 
@@ -119,24 +120,24 @@ def cmd_wait(
     try:
         port_num = int(port_str)
     except ValueError:
-        print(style(f"[✗] Invalid port number: {port_str}", Colors.RED))
+        print_error(f"Invalid port number: {port_str}")
         return 2
 
-    print(f"[*] Waiting for {host}:{port_num} to become reachable (timeout={timeout:.1f}s)...")
+    print_info(f"Waiting for {host}:{port_num} to become reachable (timeout={timeout:.1f}s)...")
     start_time = time.time()
 
     try:
         Port(port_num).wait_open(host=host, timeout=timeout)
         elapsed = time.time() - start_time
-        print(style(f"[✓] Port {port_num} is OPEN! (connected in {elapsed:.2f}s)", Colors.GREEN, bold=True))
+        print_success(f"Port {port_num} is OPEN! (connected in {elapsed:.2f}s)")
 
         if notify:
             msg = f"Port {port_num} on {host} is now reachable (in {elapsed:.2f}s)"
             if send_system_notification("Port Ready!", msg):
-                print(style("[🔔] Desktop notification dispatched.", Colors.CYAN))
+                print_info("Desktop notification dispatched.")
         return 0
     except Exception as e:
-        print(style(f"[✗] {e}", Colors.RED))
+        print_error(f"{e}")
         return 1
 
 
@@ -162,7 +163,7 @@ def cmd_find(
                 print(" ".join(str(int(p)) for p in ports))
         return 0
     except Exception as e:
-        print(style(f"[✗] {e}", Colors.RED), file=sys.stderr)
+        print_error(f"{e}")
         return 1
 
 
@@ -208,5 +209,5 @@ def cmd_ls(proto_str: str = "all", as_json: bool = False) -> int:
             user_display,
         ])
 
-    print(render_table(headers, rows))
+    print_table(headers, rows)
     return 0
